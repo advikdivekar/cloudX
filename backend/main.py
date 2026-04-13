@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -6,13 +7,14 @@ import queue_manager
 import router
 
 app = FastAPI(title="CloudX", description="Multi-Region Cloud Request Handling System")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # ─── Serve Frontend ──────────────────────────────────────
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "frontend")), name="static")
 
 @app.get("/")
 def serve_frontend():
-    return FileResponse("static/index.html")
+    return FileResponse(os.path.join(BASE_DIR, "frontend", "index.html"))
 
 
 # ─── Request ─────────────────────────────────────────────
