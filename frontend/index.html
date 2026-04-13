@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CloudX</title>
+    <link rel="stylesheet" href="/frontend/style.css" />
+</head>
+
+<body>
+
+    <!-- ─── Top Bar — brand only ────────────────────────── -->
+    <div id="top-bar">
+        <div id="brand">CloudX</div>
+    </div>
+
+    <!-- ─── Status Bar ──────────────────────────────────── -->
+    <div id="status-bar">
+        <div id="status-dot"></div>
+        <div id="status-text">Add requests and hit Process to begin.</div>
+        <div id="status-concept"></div>
+    </div>
+
+    <!-- ─── Main Canvas ─────────────────────────────────── -->
+    <div id="canvas-wrap">
+        <canvas id="topology-canvas"></canvas>
+    </div>
+
+    <!-- ─── Queue Strip ─────────────────────────────────── -->
+    <div id="queue-strip">
+        <span class="strip-label">Queue</span>
+        <div id="queue-chips"></div>
+    </div>
+
+    <!-- ─── History Strip ───────────────────────────────── -->
+    <div id="history-strip">
+        <span class="strip-label">History stack</span>
+        <div id="history-chips"></div>
+    </div>
+
+    <!-- ─── Bottom Controls ─────────────────────────────── -->
+    <div id="bottom-bar">
+        <input id="req-name" type="text" placeholder="Request name e.g. Payment" />
+        <select id="req-priority">
+            <option value="High">High</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="Low">Low</option>
+        </select>
+        <select id="req-source">
+            <option value="Mumbai" selected>From Mumbai</option>
+            <option value="Delhi">From Delhi</option>
+            <option value="Bangalore">From Bangalore</option>
+        </select>
+        <button id="btn-add" onclick="addRequest()">+ Add</button>
+        <button id="btn-process" onclick="processRequest()" disabled>▶ Process</button>
+        <button id="btn-step" onclick="nextStep()" disabled>→ Next Step</button>
+        <button id="btn-reset" onclick="resetAll()">↺ Reset</button>
+    </div>
+
+    <!-- ─── Modal Overlay ───────────────────────────────── -->
+    <div id="modal-overlay" onclick="closeModal()">
+        <div id="modal" onclick="event.stopPropagation()">
+            <div id="modal-header">
+                <div>
+                    <div id="modal-title"></div>
+                    <div id="modal-subtitle"></div>
+                </div>
+                <button id="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- ─── Scripts ─────────────────────────────────────── -->
+    <script src="/frontend/panels/queue-panel.js"></script>
+    <script src="/frontend/panels/sort-panel.js"></script>
+    <script src="/frontend/panels/router-panel.js"></script>
+    <script src="/frontend/panels/balancer-panel.js"></script>
+    <script src="/frontend/panels/history-panel.js"></script>
+    <script src="/frontend/app.js"></script>
+
+</body>
+
+</html>

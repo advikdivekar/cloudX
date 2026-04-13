@@ -12,7 +12,7 @@ app = FastAPI(title="CloudX", description="Multi-Region Cloud Request Handling S
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "frontend")), name="static")
+app.mount("/frontend", StaticFiles(directory=os.path.join(BASE_DIR, "frontend")), name="frontend")
 
 @app.get("/")
 def serve_frontend():
@@ -68,16 +68,25 @@ def get_history():
 
 # ─── Process ─────────────────────────────────────────────
 @app.post("/api/process")
-def process_request():
+def process_request(payload: dict = {}):
     if queue_manager.is_empty():
-        return { "error": "Queue is empty" }
+        return {"error": "Queue is empty"}
+
+    source = payload.get("source", "Mumbai")
+
+    router.fluctuate_latency()
+
+    overloaded = load_balancer.get_overloaded_dcs()
+    if overloaded:
+        router.apply_overload_penalty(overloaded)
 
     queue_manager.sort_queue()
-    sorted_queue = queue_manager.get_queue()
 
-    request = queue_manager.dequeue()
+    request = queue_manager.dequeue()      # dequeue FIRST
 
-    dc           = router.nearest_dc("Mumbai")
+    sorted_queue = queue_manager.get_queue()  # THEN capture remaining queue
+
+    dc           = router.nearest_dc(source)
     server_index = load_balancer.assign(dc)
 
     entry = {
@@ -91,12 +100,15 @@ def process_request():
     history.push(entry)
 
     return {
-        "request":      request,
-        "sorted_queue": sorted_queue,
-        "routed_to":    dc,
-        "server_index": server_index,
-        "server_loads": load_balancer.get_all_loads(),
-        "history":      history.get_all()
+        "request":        request,
+        "sorted_queue":   sorted_queue,
+        "routed_to":      dc,
+        "server_index":   server_index,
+        "server_loads":   load_balancer.get_all_loads(),
+        "live_graph":     router.get_graph(),
+        "overloaded_dcs": overloaded,
+        "history":        history.get_all(),
+        "source":         source
     }
 
 
@@ -106,9 +118,11 @@ def reset():
     queue_manager.reset()
     load_balancer.reset()
     history.clear()
+    router.reset_graph()
     return {
-        "status": "reset complete",
+        "status":  "reset complete",
         "queue":   queue_manager.get_queue(),
         "servers": load_balancer.get_all_loads(),
-        "history": history.get_all()
+        "history": history.get_all(),
+        "graph":   router.get_graph()
     }
