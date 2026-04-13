@@ -49,9 +49,7 @@ def dijkstra(source):
 
 def nearest_dc(source):
     dist = dijkstra(source)
-    dist_copy = dict(dist)
-    del dist_copy[source]
-    return min(dist_copy, key=dist_copy.get)
+    return min(dist, key=dist.get)
 
 def reset_graph():
     global live_graph
