@@ -1,15 +1,17 @@
-import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from datetime import datetime
+import os
 import queue_manager
 import router
+import load_balancer
+import history
 
 app = FastAPI(title="CloudX", description="Multi-Region Cloud Request Handling System")
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# ─── Serve Frontend ──────────────────────────────────────
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "frontend")), name="static")
 
 @app.get("/")
@@ -47,40 +49,66 @@ def get_graph():
     }
 
 
-# ─── Process (Part 1B stubs — complete after load_balancer + history done) ───
+# ─── Servers ─────────────────────────────────────────────
+@app.get("/api/servers")
+def get_servers():
+    return {
+        "servers": load_balancer.get_all_loads()
+    }
+
+
+# ─── History ─────────────────────────────────────────────
+@app.get("/api/history")
+def get_history():
+    return {
+        "history": history.get_all(),
+        "size":    history.size()
+    }
+
+
+# ─── Process ─────────────────────────────────────────────
 @app.post("/api/process")
 def process_request():
     if queue_manager.is_empty():
         return { "error": "Queue is empty" }
 
     queue_manager.sort_queue()
+    sorted_queue = queue_manager.get_queue()
+
     request = queue_manager.dequeue()
-    dc      = router.nearest_dc("Mumbai")
+
+    dc           = router.nearest_dc("Mumbai")
+    server_index = load_balancer.assign(dc)
+
+    entry = {
+        "id":           request["id"],
+        "name":         request["name"],
+        "priority":     request["priority"],
+        "routed_to":    dc,
+        "server_index": server_index,
+        "timestamp":    datetime.now().strftime("%H:%M:%S")
+    }
+    history.push(entry)
 
     return {
         "request":      request,
-        "sorted_queue": queue_manager.get_queue(),
+        "sorted_queue": sorted_queue,
         "routed_to":    dc,
-        "server_index": "pending — Part 1B",
-        "server_loads": "pending — Part 1B",
-        "history":      "pending — Part 1B"
+        "server_index": server_index,
+        "server_loads": load_balancer.get_all_loads(),
+        "history":      history.get_all()
     }
 
 
-# ─── Servers (stub) ──────────────────────────────────────
-@app.get("/api/servers")
-def get_servers():
-    return { "status": "pending — Part 1B" }
-
-
-# ─── History (stub) ──────────────────────────────────────
-@app.get("/api/history")
-def get_history():
-    return { "status": "pending — Part 1B" }
-
-
-# ─── Reset (stub) ────────────────────────────────────────
+# ─── Reset ───────────────────────────────────────────────
 @app.post("/api/reset")
 def reset():
     queue_manager.reset()
-    return { "status": "queue cleared — full reset pending Part 1B" }
+    load_balancer.reset()
+    history.clear()
+    return {
+        "status": "reset complete",
+        "queue":   queue_manager.get_queue(),
+        "servers": load_balancer.get_all_loads(),
+        "history": history.get_all()
+    }
