@@ -68,125 +68,97 @@ body {
 
 #bottom-bar input,
 #bottom-bar select {
-    background: var(--bg3);
-    border: 0.5px solid var(--border2);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 8px;
-    color: var(--text);
-    padding: 6px 12px;
+    color: #0f172a;
+    padding: 8px 12px;
     font-size: 13px;
     outline: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: all 0.2s;
 }
 
 #bottom-bar input {
     width: 200px;
 }
 
-#bottom-bar input:focus {
-    border-color: var(--blue);
+#bottom-bar input:focus,
+#bottom-bar select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
 }
 
 #bottom-bar button {
-    padding: 6px 16px;
+    padding: 8px 16px;
     border-radius: 8px;
-    border: 0.5px solid var(--border2);
-    background: var(--bg3);
-    color: var(--text);
     font-size: 13px;
     cursor: pointer;
-    transition: background .15s;
+    transition: all .15s;
 }
 
 #btn-add {
-    border-color: var(--blue-dim);
-    color: #93c5fd;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #0f172a;
+    font-weight: 500;
 }
 
 #btn-add:hover {
-    background: #1e3a5f;
+    background: #f8fafc;
+    border-color: #cbd5e1;
 }
 
 #btn-process {
-    border-color: #065f46;
-    color: #6ee7b7;
+    border: none;
+    background: #10b981;
+    color: #ffffff;
+    font-weight: 500;
+    box-shadow: 0 4px 10px rgba(16,185,129,0.3);
 }
 
 #btn-process:hover {
-    background: #064e3b;
+    background: #059669;
 }
 
 #btn-process:disabled {
-    opacity: .35;
+    opacity: 0.5;
+    background: #cbd5e1;
+    box-shadow: none;
     cursor: not-allowed;
 }
 
 #btn-step {
-    border-color: #854f0b;
-    color: #fbbf24;
+    border: none;
+    background: #f59e0b;
+    color: #ffffff;
+    font-weight: 500;
+    box-shadow: 0 4px 10px rgba(245,158,11,0.3);
 }
 
 #btn-step:hover {
-    background: #451a03;
+    background: #d97706;
 }
 
 #btn-step:disabled {
-    opacity: .35;
+    opacity: 0.5;
+    background: #cbd5e1;
+    box-shadow: none;
     cursor: not-allowed;
 }
 
 #btn-reset {
-    border-color: var(--border2);
-    color: var(--text-muted);
+    border: 1px solid transparent;
+    color: #64748b;
+    background: transparent;
 }
 
 #btn-reset:hover {
-    background: var(--border);
+    background: #f1f5f9;
+    color: #0f172a;
 }
 
-#btn-add {
-    border-color: var(--blue-dim);
-    color: #93c5fd;
-}
 
-#btn-add:hover {
-    background: #1e3a5f;
-}
-
-#btn-process {
-    border-color: #065f46;
-    color: #6ee7b7;
-}
-
-#btn-process:hover {
-    background: #064e3b;
-}
-
-#btn-process:disabled {
-    opacity: .35;
-    cursor: not-allowed;
-}
-
-#btn-reset {
-    border-color: var(--border2);
-    color: var(--text-muted);
-}
-
-#btn-reset:hover {
-    background: var(--border);
-}
-
-#btn-step {
-    border-color: #854f0b;
-    color: #fbbf24;
-}
-
-#btn-step:hover {
-    background: #451a03;
-}
-
-#btn-step:disabled {
-    opacity: .35;
-    cursor: not-allowed;
-}
 
 /* ─── Status Bar ────────────────────────────────────── */
 #status-bar {
@@ -321,36 +293,39 @@ body {
 }
 
 .q-chip.high {
-    background: #1f0707;
-    border-color: #ef4444;
-    color: #fca5a5;
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
 }
 
 .q-chip.medium {
-    background: #1c1007;
-    border-color: #f59e0b;
-    color: #fcd34d;
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #b45309;
 }
 
 .q-chip.low {
-    background: #071525;
-    border-color: #3b82f6;
-    color: #93c5fd;
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
 }
 
 .q-chip.active {
     transform: scale(1.06);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
 .h-chip {
-    padding: 3px 12px;
-    border-radius: 6px;
+    padding: 4px 14px;
+    border-radius: 8px;
     font-size: 11px;
-    background: #0a1628;
-    border: 0.5px solid #1e3a5f;
-    color: #60a5fa;
+    font-weight: 500;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
     white-space: nowrap;
     flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 /* ─── Modal ─────────────────────────────────────────── */

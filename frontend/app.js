@@ -46,9 +46,9 @@ function getNodes() {
         sort:     { x: cx-400, y: cy+40,  w: 150, h: 54, label: 'Merge Sort',    sub: 'priority order',     color: '#ffffff', glow: 'rgba(167,139,250,0.3)', concept: 'sort' },
         router:   { x: cx-50,  y: cy-140, w: 160, h: 54, label: 'Router',        sub: "Graph · Dijkstra's", color: '#ffffff', glow: 'rgba(45,212,191,0.3)', concept: 'router' },
         balancer: { x: cx-50,  y: cy+40,  w: 160, h: 54, label: 'Load Balancer', sub: 'Array · Greedy',     color: '#ffffff', glow: 'rgba(245,158,11,0.3)', concept: 'balancer' },
-        mumbai:   { x: cx+400, y: cy-250, w: 160, h: 90, label: 'Mumbai DC',     sub: '3 servers',          color: '#ffffff', glow: 'rgba(16,185,129,0.3)', concept: 'balancer' },
-        delhi:    { x: cx+400, y: cy-90,  w: 160, h: 90, label: 'Delhi DC',      sub: '3 servers',          color: '#ffffff', glow: 'rgba(100,116,139,0.15)', concept: 'balancer' },
-        blr:      { x: cx+400, y: cy+70,  w: 160, h: 90, label: 'Bangalore DC',  sub: '3 servers',          color: '#ffffff', glow: 'rgba(100,116,139,0.15)', concept: 'balancer' },
+        mumbai:   { x: cx+400, y: cy-250, w: 160, h: 90, label: 'Mumbai DC',     sub: '1 server',          color: '#ffffff', glow: 'rgba(16,185,129,0.3)', concept: 'balancer' },
+        delhi:    { x: cx+400, y: cy-90,  w: 160, h: 90, label: 'Delhi DC',      sub: '1 server',          color: '#ffffff', glow: 'rgba(100,116,139,0.15)', concept: 'balancer' },
+        blr:      { x: cx+400, y: cy+70,  w: 160, h: 90, label: 'Bangalore DC',  sub: '1 server',          color: '#ffffff', glow: 'rgba(100,116,139,0.15)', concept: 'balancer' },
         history:  { x: cx-50,  y: cy+170, w: 160, h: 54, label: 'History',       sub: 'Stack · push/pop',   color: '#ffffff', glow: 'rgba(192,132,252,0.3)', concept: 'history' },
     };
 }
@@ -113,7 +113,7 @@ function getPipePath(from, to) {
     if (from === 'queue' && to === 'sort')
         return [{ x: a.x, y: a.y + 25 }, { x: a.x, y: nt.y }];
     if (from === 'sort' && to === 'router')
-        return [{ x: a.x, y: a.y }, { x: nt.x, y: a.y }, { x: nt.x, y: b.y }];
+        return [{ x: a.x + nf.w / 2, y: a.y }, { x: b.x - nt.w / 2, y: b.y }];
     if (from === 'balancer' && to === 'history')
         return [{ x: a.x, y: a.y + 25 }, { x: a.x, y: nt.y }];
     if (from === 'balancer' && (to === 'mumbai' || to === 'delhi' || to === 'blr'))
@@ -183,7 +183,7 @@ function drawNode(id) {
     if (dcName) {
         const loads = serverLoads[dcName] || [0, 0, 0];
         const totalW = n.w - 20;
-        const barW = (totalW - 8) / 3;
+        const barW = (totalW - (loads.length - 1) * 4) / loads.length;
         const startX = n.x + 10;
         const barBotY = n.y + n.h - 10;
         const maxBarH = 18;
@@ -233,7 +233,7 @@ function drawLatencyLabels() {
     ];
     pairs.forEach(p => {
         const a = nc(p.from), b = nc(p.to);
-        const mx = (a.x + b.x) / 2 + 16;
+        const mx = b.x - 100;
         const my = (a.y + b.y) / 2;
         ctx.fillStyle = activePipes.has(p.from + '-' + p.to) ? '#2563eb' : '#64748b';
         ctx.font = '500 11px Inter, sans-serif';
@@ -436,8 +436,7 @@ async function processRequest() {
         return;
     }
 
-    // update live state
-    if (data.server_loads) serverLoads = data.server_loads;
+    // update live state synchronously
     if (data.overloaded_dcs) overloadedDCs = data.overloaded_dcs;
     if (data.live_graph) updateLatency(data.live_graph, source);
 
@@ -463,6 +462,9 @@ async function processRequest() {
     await animateParticle('balancer', dcId, '#10b981');
     activeNodes.add(dcId);
     activePipes.add('balancer-' + dcId);
+    
+    // visually tick load upward perfectly in sync with arrival
+    if (data.server_loads) serverLoads = data.server_loads;
     setStatus(
         `Assigned to ${data.routed_to} · Server ${data.server_index + 1} — load incremented`,
         [{ label: 'Assigned', color: 'green' }]
@@ -514,8 +516,8 @@ async function resetAll() {
 // ─── Node Click → Modal ──────────────────────────────────
 canvas.addEventListener('click', e => {
     const rect = canvas.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
-    const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
     const nodes = getNodes();
     for (const [id, n] of Object.entries(nodes)) {
         if (mx >= n.x && mx <= n.x + n.w && my >= n.y && my <= n.y + n.h) {

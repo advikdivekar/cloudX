@@ -4,7 +4,7 @@ MAX_LOAD = 10
 OVERLOAD_THRESHOLD = 7
 
 def _random_loads():
-    return [random.randint(0, 9) for _ in range(3)]
+    return [random.randint(0, 9)]
 
 servers = {
     "Mumbai":    _random_loads(),

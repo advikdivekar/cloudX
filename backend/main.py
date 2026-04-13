@@ -101,12 +101,13 @@ def process_request(payload: dict = {}):
     sorted_queue = queue_manager.get_queue()
 
     # route and assign
-    dc           = router.nearest_dc(source)
+    server_loads = load_balancer.get_all_loads()
+    dc           = router.nearest_dc(source, server_loads)
     server_index = load_balancer.assign(dc)
 
     # get latency used for this routing decision
     live_graph   = router.get_graph()
-    latency_used = live_graph.get(source, {}).get(dc, "?")
+    latency_used = 0 if source == dc else live_graph.get(source, {}).get(dc, "?")
 
     # build history entry
     entry = {

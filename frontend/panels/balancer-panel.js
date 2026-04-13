@@ -42,7 +42,7 @@ async function renderBalancerPanel(body) {
         }).join('')}
                         </div>
 
-                        <div style="font-size:11px;color:#64748b;font-family:monospace;background:#080c18;padding:8px;border-radius:6px">
+                        <div style="font-size:11px;color:#64748b;font-family:monospace;background:#f1f5f9;padding:8px;border-radius:6px">
                             loads = [${loads.join(', ')}] → min=${minLoad} at index ${minIdx} → assign S${minIdx + 1}
                         </div>
                     </div>`;

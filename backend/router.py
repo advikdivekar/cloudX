@@ -47,9 +47,28 @@ def dijkstra(source):
 
     return dist
 
-def nearest_dc(source):
+def nearest_dc(source, server_loads=None):
     dist = dijkstra(source)
-    return min(dist, key=dist.get)
+    if not server_loads:
+        return min(dist, key=dist.get)
+
+    best_dc = source
+    min_cost = float("inf")
+
+    for dc, load_array in server_loads.items():
+        if dc not in dist:
+            continue
+
+        # Real-life hardware penalty metric: processing latency spikes natively as workload stacks.
+        avg_load = sum(load_array) / len(load_array) if load_array else 0
+        server_latency = (avg_load ** 1.5) * 4
+        total_cost = dist[dc] + server_latency
+
+        if total_cost < min_cost:
+            min_cost = total_cost
+            best_dc = dc
+
+    return best_dc
 
 def reset_graph():
     global live_graph
