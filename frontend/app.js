@@ -95,7 +95,7 @@ function fillRoundRect(x, y, w, h, r) {
 
 // ─── Draw Grid ───────────────────────────────────────────
 function drawGrid() {
-    ctx.strokeStyle = '#f1f5f9';
+    ctx.strokeStyle = '#e8e3d8';
     ctx.lineWidth = 1;
     for (let x = 0; x < W; x += 40) {
         ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
@@ -112,8 +112,13 @@ function getPipePath(from, to) {
 
     if (from === 'queue' && to === 'sort')
         return [{ x: a.x, y: a.y + 25 }, { x: a.x, y: nt.y }];
-    if (from === 'sort' && to === 'router')
-        return [{ x: a.x + nf.w / 2, y: a.y }, { x: b.x - nt.w / 2, y: b.y }];
+    if (from === 'sort' && to === 'router') {
+        const p1 = { x: a.x + nf.w / 2, y: a.y }; 
+        const p2 = { x: a.x + nf.w / 2 + 100, y: a.y }; 
+        const p3 = { x: a.x + nf.w / 2 + 100, y: b.y }; 
+        const p4 = { x: b.x - nt.w / 2, y: b.y };
+        return [p1, p2, p3, p4];
+    }
     if (from === 'balancer' && to === 'history')
         return [{ x: a.x, y: a.y + 25 }, { x: a.x, y: nt.y }];
     if (from === 'balancer' && (to === 'mumbai' || to === 'delhi' || to === 'blr'))
@@ -126,23 +131,21 @@ function drawPipes() {
         const key = p.from + '-' + p.to;
         const active = activePipes.has(key);
         const pts = getPipePath(p.from, p.to);
-        ctx.strokeStyle = active ? '#3b82f6' : '#cbd5e1';
-        ctx.lineWidth = active ? 2.5 : 1.5;
-        ctx.setLineDash(active ? [] : [5, 6]);
-        ctx.lineJoin = 'round';
+        ctx.strokeStyle = active ? '#ea580c' : '#000000';
+        ctx.lineWidth = active ? 4 : 2;
+        ctx.setLineDash(active ? [] : [6, 6]);
+        ctx.lineJoin = 'miter';
         ctx.beginPath();
         ctx.moveTo(pts[0].x, pts[0].y);
         
-        // Build smooth bezier curves
         for (let i = 0; i < pts.length - 1; i++) {
             const p1 = pts[i];
             const p2 = pts[i + 1];
-            // If they are on the same X or Y axis exactly, just lineTo. Otherwise, curve.
             if (p1.x === p2.x || p1.y === p2.y) {
                 ctx.lineTo(p2.x, p2.y);
             } else {
-                const midX = p1.x + (p2.x - p1.x)/2;
-                ctx.bezierCurveTo(midX, p1.y, midX, p2.y, p2.x, p2.y);
+                ctx.lineTo(p1.x, p2.y);
+                ctx.lineTo(p2.x, p2.y);
             }
         }
         ctx.stroke();
@@ -157,27 +160,49 @@ function drawNode(id) {
     const dcName = { mumbai: 'Mumbai', delhi: 'Delhi', blr: 'Bangalore' }[id];
     const overloaded = dcName && overloadedDCs.includes(dcName);
 
-    ctx.save();
-    ctx.shadowColor = n.glow; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8; if(active) ctx.shadowColor = n.glow.replace('0.15','0.6').replace('0.3','0.6');
-    if (overloaded) { ctx.shadowColor = 'rgba(239, 68, 68, 0.4)'; ctx.shadowBlur = 20; ctx.shadowOffsetY = 6; }
+    // Brutalist shadow
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(n.x + 6, n.y + 6, n.w, n.h);
 
-    ctx.fillStyle = overloaded ? '#fef2f2' : n.color;
-    ctx.strokeStyle = overloaded ? '#fca5a5' : (active ? n.glow : '#e2e8f0');
-    ctx.lineWidth = (active || overloaded) ? 1.5 : 0.5;
-    roundRect(n.x, n.y, n.w, n.h, 10);
-    ctx.fill(); ctx.stroke();
-    ctx.restore();
+    let bodyColor = '#ffffff';
+    ctx.fillStyle = overloaded ? '#fecaca' : bodyColor;
+    if (active) ctx.fillStyle = '#000000';
+
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    ctx.fillRect(n.x, n.y, n.w, n.h);
+    ctx.strokeRect(n.x, n.y, n.w, n.h);
+
+    let iconColor = '#f97316';
+    let iconChar = '⚡';
+    if (n.concept === 'router') { iconColor = '#fde047'; iconChar = '🗄️'; }
+    else if (n.concept === 'balancer' && !dcName) { iconColor = '#fb923c'; iconChar = '🧠'; }
+    else if (n.concept === 'queue') { iconColor = '#fef08a'; iconChar = '🧪'; }
+    else if (n.concept === 'sort') { iconColor = '#fb923c'; iconChar = '⚡'; }
+    else if (n.concept === 'history') { iconColor = '#fde047'; iconChar = '🗄️'; }
+    
+    if (n.concept && !dcName) {
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(n.x + 14, n.y + 12, 28, 28);
+        ctx.fillStyle = iconColor;
+        ctx.fillRect(n.x + 12, n.y + 10, 28, 28);
+        ctx.strokeRect(n.x + 12, n.y + 10, 28, 28);
+        ctx.fillStyle = '#000';
+        ctx.font = '14px Inter';
+        ctx.textAlign = 'center';
+        ctx.fillText(iconChar, n.x + 26, n.y + 30);
+    }
 
     // label - bigger
-    ctx.textAlign = 'center';
-    ctx.fillStyle = overloaded ? '#b91c1c' : (active ? '#1e3a8a' : '#1e293b');
-    ctx.font = '600 14px Inter, sans-serif';
-    ctx.fillText(n.label, n.x + n.w/2, n.y + 18);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = active ? '#ffffff' : (overloaded ? '#b91c1c' : '#000000');
+    ctx.font = '700 16px "Playfair Display", serif';
+    ctx.fillText(n.label, n.x + (dcName ? 14 : 52), n.y + (dcName ? 26 : 24));
 
     // sub - slightly bigger
-    ctx.fillStyle = overloaded ? '#ef4444' : (active ? '#3b82f6' : '#64748b');
-    ctx.font = '11px Inter, sans-serif';
-    ctx.fillText(overloaded ? 'OVERLOADED' : n.sub, n.x + n.w/2, n.y + 34);
+    ctx.fillStyle = active ? '#fbbf24' : (overloaded ? '#ef4444' : '#4b5563');
+    ctx.font = '400 11px "Inter", sans-serif';
+    ctx.fillText(overloaded ? 'OVERLOADED' : n.sub, n.x + (dcName ? 14 : 52), n.y + (dcName ? 44 : 38));
 
     // server bars for DC nodes
     if (dcName) {
@@ -194,24 +219,28 @@ function drawNode(id) {
             const barH = Math.max(2, maxBarH * pct);
 
             // bg track
-            ctx.fillStyle = '#f1f5f9';
-            fillRoundRect(bx, barBotY - maxBarH, barW, maxBarH, 3);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(bx, barBotY - maxBarH, barW, maxBarH);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(bx, barBotY - maxBarH, barW, maxBarH);
 
             // fill
-            const col = pct >= 0.8 ? '#ef4444' : pct >= 0.5 ? '#f59e0b' : '#10b981';
-            ctx.fillStyle = active ? col : col + '77';
-            fillRoundRect(bx, barBotY - barH, barW, barH, 3);
+            const col = pct >= 0.8 ? '#ef4444' : pct >= 0.5 ? '#f97316' : '#22c55e';
+            ctx.fillStyle = col;
+            ctx.fillRect(bx, barBotY - barH, barW, barH);
+            ctx.strokeRect(bx, barBotY - barH, barW, barH);
 
             // load number above bar
-            ctx.fillStyle = active ? '#1e3a8a' : '#64748b';
-            ctx.font = '500 10px Inter, sans-serif';
+            ctx.fillStyle = active ? '#ffffff' : '#000000';
+            ctx.font = '700 11px "Space Mono", monospace';
             ctx.textAlign = 'center';
             ctx.fillText(load, bx + barW/2, barBotY - maxBarH - 4);
 
             // server bar S labels
-            ctx.fillStyle = active ? '#3b82f6' : '#94a3b8';
-            ctx.font = '500 11px Inter, sans-serif';
-            ctx.fillText('S'+(i+1), bx + barW/2, barBotY + 9);
+            ctx.fillStyle = active ? '#fef08a' : '#000000';
+            ctx.font = '700 11px "Space Mono", monospace';
+            ctx.fillText('S'+(i+1), bx + barW/2, barBotY + 11);
         });
     }
 
@@ -235,8 +264,8 @@ function drawLatencyLabels() {
         const a = nc(p.from), b = nc(p.to);
         const mx = b.x - 100;
         const my = (a.y + b.y) / 2;
-        ctx.fillStyle = activePipes.has(p.from + '-' + p.to) ? '#2563eb' : '#64748b';
-        ctx.font = '500 11px Inter, sans-serif';
+        ctx.fillStyle = activePipes.has(p.from + '-' + p.to) ? '#000000' : '#444444';
+        ctx.font = '700 11px "Space Mono", monospace';
         ctx.textAlign = 'center';
         ctx.fillText(liveLatency[p.key], mx, my);
     });
@@ -263,7 +292,7 @@ function drawParticles() {
 
 // ─── Draw Loop ───────────────────────────────────────────
 function draw() {
-    ctx.fillStyle = '#f8fafc';
+    ctx.fillStyle = '#f8f5ee';
     ctx.fillRect(0, 0, W, H);
     drawGrid();
     drawPipes();
